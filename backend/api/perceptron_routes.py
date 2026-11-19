@@ -31,5 +31,5 @@ def step_route():
         {"weights": data["weights"], "bias": data["bias"]}, learning_rate=learning_rate
     )
     dataset = data["dataset"]
-    result = perceptron.train_epoch(dataset["points"], dataset["labels"])
+    result = perceptron.train_epoch(dataset["points"], dataset["labels"], record_trace=True)
     return jsonify({**perceptron.to_dict(), **result})

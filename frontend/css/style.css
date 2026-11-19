@@ -235,3 +235,87 @@ canvas {
   font-size: 0.85rem;
   text-decoration: none;
 }
+
+.theory-panel {
+  margin-bottom: 1.25rem;
+}
+
+.theory-panel details {
+  border-top: 1px solid var(--border);
+  padding: 0.6rem 0;
+}
+
+.theory-panel summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.theory-panel summary::marker {
+  color: var(--accent);
+}
+
+.theory-panel p,
+.theory-panel li {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.theory-panel code {
+  background: var(--bg-panel-alt);
+  border-radius: 4px;
+  padding: 0.05rem 0.35rem;
+  color: var(--text);
+  font-size: 0.85em;
+}
+
+.log-panel {
+  margin-top: 1.25rem;
+}
+
+.log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.log-header h2 {
+  margin: 0;
+}
+
+.log-header button {
+  width: auto;
+  margin: 0;
+}
+
+.training-log {
+  margin-top: 0.75rem;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #0b1120;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 0.8rem;
+}
+
+.log-epoch-header {
+  color: var(--accent);
+  margin: 0.6rem 0 0.3rem;
+  font-weight: 600;
+}
+
+.log-epoch-header:first-child {
+  margin-top: 0;
+}
+
+.log-line {
+  color: var(--text-dim);
+  padding: 0.15rem 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.log-line.log-ok {
+  color: var(--good);
+}

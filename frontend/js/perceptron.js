@@ -27,6 +27,8 @@ const biasValue = document.getElementById("bias-value");
 const btnStep = document.getElementById("btn-step");
 const btnTrain = document.getElementById("btn-train");
 const btnRandom = document.getElementById("btn-random");
+const btnClearLog = document.getElementById("btn-clear-log");
+const trainingLog = document.getElementById("training-log");
 
 const statEpoch = document.getElementById("stat-epoch");
 const statAccuracy = document.getElementById("stat-accuracy");
@@ -62,6 +64,7 @@ function randomWeights() {
   state.accuracyHistory = [];
   state.highlightIndex = -1;
   statUpdates.textContent = "—";
+  clearLog();
   syncSlidersFromState();
 }
 
@@ -80,6 +83,51 @@ function updateValueLabels() {
   diagW1Label.textContent = `w1=${state.weights[0].toFixed(2)}`;
   diagW2Label.textContent = `w2=${state.weights[1].toFixed(2)}`;
   diagBiasLabel.textContent = `bias=${state.bias.toFixed(2)}`;
+}
+
+function fmtSigned(value, digits = 3) {
+  const fixed = value.toFixed(digits);
+  return value >= 0 ? `+${fixed}` : fixed;
+}
+
+const LOG_PLACEHOLDER =
+  '<p class="info-box">Kliknij "Jeden krok (epoka)" albo "Trenuj do zbieżności", żeby zobaczyć tutaj dokładny przebieg aktualizacji wag.</p>';
+
+function clearLog() {
+  trainingLog.innerHTML = LOG_PLACEHOLDER;
+}
+
+function appendEpochLog(epochNumber, result) {
+  const header = document.createElement("div");
+  header.className = "log-epoch-header";
+  header.textContent = `— Epoka ${epochNumber} — (${result.updates} aktualizacji, dokładność ${Math.round(
+    result.accuracy * 100
+  )}%)`;
+  trainingLog.appendChild(header);
+
+  if (result.trace.length === 0) {
+    const line = document.createElement("div");
+    line.className = "log-line log-ok";
+    line.textContent = "Brak błędów na całym zbiorze — wagi bez zmian. Perceptron osiągnął zbieżność!";
+    trainingLog.appendChild(line);
+  } else {
+    result.trace.forEach((event) => {
+      const [x, y] = event.point;
+      const [dw1, dw2] = event.delta_weights;
+      const [w1After, w2After] = event.weights_after;
+      const line = document.createElement("div");
+      line.className = "log-line";
+      line.textContent =
+        `Punkt (${x.toFixed(2)}, ${y.toFixed(2)}): prawdziwa klasa ${event.target}, ` +
+        `sieć przewidziała ${event.prediction} (net=${event.net_input.toFixed(2)}). ` +
+        `Błąd = ${event.target} − ${event.prediction} = ${event.error}. ` +
+        `Aktualizacja: w1 ${fmtSigned(dw1)} → ${w1After.toFixed(3)}, ` +
+        `w2 ${fmtSigned(dw2)} → ${w2After.toFixed(3)}, ` +
+        `bias ${fmtSigned(event.delta_bias)} → ${event.bias_after.toFixed(3)}`;
+      trainingLog.appendChild(line);
+    });
+  }
+  trainingLog.scrollTop = trainingLog.scrollHeight;
 }
 
 function render() {
@@ -111,6 +159,7 @@ async function loadDataset(name) {
   state.highlightIndex = -1;
   statUpdates.textContent = "—";
   xorNote.style.display = name === "xor" ? "block" : "none";
+  clearLog();
   render();
 }
 
@@ -127,6 +176,7 @@ async function doStep() {
   state.epoch += 1;
   state.accuracyHistory.push(result.accuracy);
   statUpdates.textContent = result.updates;
+  appendEpochLog(state.epoch, result);
   syncSlidersFromState();
   render();
   return result;
@@ -202,6 +252,7 @@ btnRandom.addEventListener("click", () => {
   randomWeights();
   render();
 });
+btnClearLog.addEventListener("click", clearLog);
 
 randomWeights();
 loadDataset(datasetSelect.value);

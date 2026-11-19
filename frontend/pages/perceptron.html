@@ -12,6 +12,80 @@
     <a class="back-link" href="/">← Strona główna</a>
   </header>
   <main>
+    <section class="panel theory-panel">
+      <p class="info-box">
+        <strong>Co widzisz na ekranie:</strong> kolorowe kropki to punkty
+        datasetu (kolor = klasa), przerywana linia to granica decyzyjna
+        perceptronu, diagram po prawej pokazuje pojedynczy neuron "na żywo",
+        a log na dole tłumaczy każdą aktualizację wag słowami i liczbami.
+        Jeśli dopiero zaczynasz — rozwiń sekcje teorii poniżej.
+      </p>
+
+      <details>
+        <summary>Czym jest perceptron?</summary>
+        <p>
+          Perceptron to najprostszy możliwy "neuron" sztucznej sieci
+          neuronowej, zaproponowany przez Franka Rosenblatta w 1958 roku.
+          Przyjmuje kilka liczb wejściowych (tu: współrzędne x1, x2 punktu),
+          mnoży każdą przez swoją wagę, sumuje wyniki, dodaje stałą zwaną
+          obciążeniem (bias), a na końcu sprawdza tylko jedno: czy ta suma
+          jest dodatnia, czy nie.
+        </p>
+      </details>
+
+      <details>
+        <summary>Jak liczy wynik? (przejście w przód)</summary>
+        <p>
+          Wzór: <code>net = w1·x1 + w2·x2 + b</code>, a wynik to
+          <code>y = 1</code> jeśli <code>net ≥ 0</code>, inaczej
+          <code>y = 0</code> (to tzw. funkcja progowa).
+        </p>
+        <p>
+          Równanie <code>w1·x1 + w2·x2 + b = 0</code> to po prostu linia
+          prosta na płaszczyźnie — to właśnie ta przerywana linia na
+          wykresie. Perceptron klasyfikuje punkt w zależności od tego, po
+          której stronie tej linii leży.
+        </p>
+      </details>
+
+      <details>
+        <summary>Jak się uczy? (reguła Rosenblatta)</summary>
+        <p>Dla każdego punktu treningowego perceptron robi trzy rzeczy:</p>
+        <ol>
+          <li>Liczy przewidywanie <code>y</code> (jak wyżej).</li>
+          <li>
+            Liczy błąd: <code>error = cel − y</code> (wychodzi −1, 0 albo 1).
+          </li>
+          <li>
+            Jeśli <code>error ≠ 0</code>, poprawia wagi:
+            <code>wi += lr · error · xi</code> oraz
+            <code>bias += lr · error</code>.
+          </li>
+        </ol>
+        <p>
+          Intuicja: jeśli perceptron pomylił się i powinien odpowiedzieć 1,
+          a odpowiedział 0, przesuwa wagi "w stronę" tego punktu, żeby
+          następnym razem suma wyszła dodatnia. Współczynnik uczenia (lr)
+          kontroluje, jak duże są te kroki. Dokładnie to pokazuje log
+          treningu poniżej.
+        </p>
+      </details>
+
+      <details>
+        <summary>Dlaczego XOR się nie uda?</summary>
+        <p>
+          Perceptron potrafi narysować tylko jedną prostą linię podziału.
+          Zbiory takie jak AND i OR da się rozdzielić jedną linią (są
+          "liniowo separowalne"). XOR wymaga co najmniej dwóch linii, więc
+          pojedynczy neuron nigdy się tego nie nauczy — niezależnie od liczby
+          epok czy wartości wag. To ograniczenie (opisane przez Minsky'ego i
+          Paperta w 1969 r.) na dekadę wyhamowało rozwój sieci neuronowych,
+          dopóki nie zaczęto używać sieci <em>wielowarstwowych</em>
+          (kolejny etap tego projektu).
+        </p>
+      </details>
+    </section>
+
     <div class="layout">
       <section class="panel">
         <h2>Dataset</h2>
@@ -94,6 +168,16 @@
         </div>
       </section>
     </div>
+
+    <section class="panel log-panel">
+      <div class="log-header">
+        <h2>Log treningu — co właśnie się wydarzyło</h2>
+        <button id="btn-clear-log">Wyczyść log</button>
+      </div>
+      <div id="training-log" class="training-log" aria-live="polite">
+        <p class="info-box">Kliknij "Jeden krok (epoka)" albo "Trenuj do zbieżności", żeby zobaczyć tutaj dokładny przebieg aktualizacji wag.</p>
+      </div>
+    </section>
   </main>
 
   <script type="module" src="/js/perceptron.js"></script>
