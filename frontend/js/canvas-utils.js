@@ -90,6 +90,52 @@ export function drawDecisionBoundary(ctx, transform, weights, bias, color = "#ff
   ctx.restore();
 }
 
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function lerpColor(c1, c2, t) {
+  return [lerp(c1[0], c2[0], t), lerp(c1[1], c2[1], t), lerp(c1[2], c2[2], t)];
+}
+
+const FIELD_BLUE = [35, 70, 140];
+const FIELD_NEUTRAL = [17, 23, 38];
+const FIELD_RED = [150, 60, 42];
+
+/** Koloruje wartość z [0, 1] (prawdopodobieństwo klasy 1) na niebiesko-czerwonej skali. */
+export function decisionFieldColor(value) {
+  const [r, g, b] =
+    value < 0.5
+      ? lerpColor(FIELD_BLUE, FIELD_NEUTRAL, value / 0.5)
+      : lerpColor(FIELD_NEUTRAL, FIELD_RED, (value - 0.5) / 0.5);
+  return `rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)})`;
+}
+
+/** Koloruje wagę w zakresie [-maxAbs, maxAbs] na tej samej niebiesko-czerwonej skali. */
+export function weightColor(value, maxAbs) {
+  if (maxAbs <= 1e-9) return decisionFieldColor(0.5);
+  const normalized = 0.5 + 0.5 * Math.max(-1, Math.min(1, value / maxAbs));
+  return decisionFieldColor(normalized);
+}
+
+/** Rysuje tło wykresu jako siatkę kolorowanych komórek wg wartości z `values` (row-major, y rosnąco). */
+export function drawDecisionField(ctx, canvas, transform, resolution, values) {
+  const [dMin, dMax] = transform.domain;
+  const cellData = (dMax - dMin) / resolution;
+  const cellPx = transform.scale * cellData;
+  for (let j = 0; j < resolution; j++) {
+    const yData = dMin + j * cellData;
+    const [, pyBottom] = transform.toPx(dMin, yData);
+    const pyTop = pyBottom - cellPx;
+    for (let i = 0; i < resolution; i++) {
+      const xData = dMin + i * cellData;
+      const [pxLeft] = transform.toPx(xData, yData);
+      ctx.fillStyle = decisionFieldColor(values[j * resolution + i]);
+      ctx.fillRect(pxLeft, pyTop, cellPx + 0.5, cellPx + 0.5);
+    }
+  }
+}
+
 export function drawLineChart(ctx, canvas, values, { color = "#4f8ff7", min = 0, max = 1 } = {}) {
   clearCanvas(ctx, canvas);
   ctx.save();

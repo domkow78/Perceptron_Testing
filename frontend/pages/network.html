@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sieć neuronowa — Zrozumieć sieci neuronowe</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>Sieć neuronowa (warstwy ukryte)</h1>
+    <a class="back-link" href="/">← Strona główna</a>
+  </header>
+  <main>
+    <section class="panel theory-panel">
+      <p class="info-box">
+        <strong>Co widzisz na ekranie:</strong> kolorowe tło to "pole decyzyjne"
+        sieci (niebieski = pewność klasy 0, czerwony = pewność klasy 1),
+        kropki to punkty datasetu, a pod spodem — zależnie od rozmiaru sieci —
+        pełny diagram połączeń (małe sieci) albo mapa cieplna macierzy wag
+        (duże sieci, np. 100 neuronów).
+      </p>
+
+      <details>
+        <summary>Po co warstwa ukryta?</summary>
+        <p>
+          Pojedynczy perceptron potrafi narysować tylko jedną prostą linię
+          podziału. Jeśli połączymy wiele takich neuronów w warstwę ukrytą,
+          a potem skombinujemy ich wyniki w neuronie wyjściowym, sieć może
+          budować dowolnie poskręcane granice decyzyjne — stąd radzi sobie
+          z XOR, okręgami czy spiralą, z którymi pojedynczy perceptron
+          (Etap 1) sobie nie poradził.
+        </p>
+      </details>
+
+      <details>
+        <summary>Propagacja w przód i wstecz (backpropagation) w skrócie</summary>
+        <p>
+          <strong>W przód:</strong> dane wejściowe przechodzą kolejno przez
+          każdą warstwę: <code>a[l] = f(a[l-1] · W[l] + b[l])</code>, gdzie
+          <code>f</code> to funkcja aktywacji.
+        </p>
+        <p>
+          <strong>Wstecz:</strong> liczymy błąd na wyjściu (różnica
+          przewidywanie − cel), a potem przesyłamy go "do tyłu" przez sieć —
+          każda warstwa ukryta dostaje swoją porcję błędu ważoną wagami
+          następnej warstwy i pomnożoną przez pochodną swojej funkcji
+          aktywacji. Na tej podstawie każda waga jest odrobinę poprawiana w
+          stronę zmniejszenia błędu (spadek gradientu).
+        </p>
+      </details>
+
+      <details>
+        <summary>Wagi jako macierze, nie pojedyncze liczby</summary>
+        <p>
+          W pojedynczym perceptronie wagi to dwie liczby (w1, w2). W sieci
+          wielowarstwowej każda para kolejnych warstw ma całą
+          <strong>macierz</strong> wag — np. warstwa 2 wejścia → 10 neuronów
+          ukrytych to macierz 2×10 (20 liczb), a 10 neuronów ukrytych → 1
+          wyjście to macierz 10×1. Przy 100 neuronach robi się to już
+          tysiące liczb — dlatego zamiast rysować każde połączenie osobno,
+          większe sieci pokazujemy jako mapę cieplną tych macierzy.
+        </p>
+      </details>
+
+      <details>
+        <summary>Diagram czy mapa cieplna?</summary>
+        <p>
+          Dla sieci, w których żadna warstwa nie przekracza ok. 24 neuronów,
+          strona rysuje pełny graf: węzły (neurony) i krawędzie (wagi,
+          kolor = znak, grubość = wielkość). Powyżej tego progu rysowanie
+          tysięcy osobnych linii przestaje być czytelne, więc strona
+          automatycznie przełącza się na mapę cieplną — każda macierz wag
+          staje się siatką kolorowych komórek (niebieski = waga ujemna,
+          czerwony = dodatnia), a pod spodem widać pasek aktywacji
+          klikniętego punktu.
+        </p>
+      </details>
+    </section>
+
+    <div class="layout">
+      <section class="panel">
+        <h2>Dataset</h2>
+        <div class="field">
+          <label for="dataset-select">Wybierz dataset</label>
+          <select id="dataset-select">
+            <option value="xor">XOR</option>
+            <option value="circles">Okręgi</option>
+            <option value="spiral">Spirala</option>
+            <option value="and">AND</option>
+            <option value="or">OR</option>
+            <option value="blobs">Dwie chmury punktów</option>
+          </select>
+        </div>
+
+        <h2>Architektura</h2>
+        <div class="field">
+          <label for="hidden-layers">Warstwy ukryte (po przecinku)</label>
+          <input type="text" id="hidden-layers" value="10" />
+        </div>
+        <p class="info-box" style="margin: -0.4rem 0 0.9rem;">
+          np. <code>10</code> — jedna warstwa z 10 neuronami, <code>100</code>
+          — jedna warstwa ze 100, <code>10,10</code> — dwie warstwy.
+        </p>
+        <div class="field">
+          <label for="activation-select">Funkcja aktywacji (warstwy ukryte)</label>
+          <select id="activation-select">
+            <option value="tanh">tanh</option>
+            <option value="sigmoid">sigmoid</option>
+            <option value="relu">ReLU</option>
+          </select>
+        </div>
+        <button id="btn-build" class="primary">Zbuduj sieć (losowe wagi)</button>
+
+        <h2>Trening</h2>
+        <div class="field">
+          <label for="learning-rate">Współczynnik uczenia <span id="learning-rate-value">0.50</span></label>
+          <input type="range" id="learning-rate" min="0.01" max="2" step="0.01" value="0.5" />
+        </div>
+        <div class="field">
+          <label for="epochs-per-run">Epok na "Trenuj"</label>
+          <input type="number" id="epochs-per-run" min="1" max="500" value="30" />
+        </div>
+        <button id="btn-step">Jeden krok (epoka)</button>
+        <button id="btn-train">Trenuj N epok</button>
+      </section>
+
+      <section>
+        <canvas id="decision-field" width="480" height="480"></canvas>
+        <p id="point-inspector" class="info-box">Kliknij punkt na wykresie, aby zobaczyć jego przejście przez sieć.</p>
+        <canvas id="network-viz" width="480" height="260"></canvas>
+      </section>
+
+      <section class="panel">
+        <h2>Statystyki</h2>
+        <div class="stat-row"><span>Epoka</span><span class="value" id="stat-epoch">0</span></div>
+        <div class="stat-row"><span>Strata (loss)</span><span class="value" id="stat-loss">—</span></div>
+        <div class="stat-row"><span>Dokładność</span><span class="value" id="stat-accuracy">—</span></div>
+        <p class="info-box" style="margin-bottom: 0.3rem;">Strata (loss)</p>
+        <canvas id="loss-chart" width="240" height="100"></canvas>
+        <p class="info-box" style="margin: 0.6rem 0 0.3rem;">Dokładność</p>
+        <canvas id="accuracy-chart" width="240" height="100"></canvas>
+      </section>
+    </div>
+
+    <section class="panel log-panel">
+      <div class="log-header">
+        <h2>Log treningu</h2>
+        <button id="btn-clear-log">Wyczyść log</button>
+      </div>
+      <div id="training-log" class="training-log" aria-live="polite">
+        <p class="info-box">Kliknij "Zbuduj sieć", a potem "Jeden krok" albo "Trenuj N epok".</p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/js/network.js"></script>
+</body>
+</html>

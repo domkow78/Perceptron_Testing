@@ -3,7 +3,7 @@ import pytest
 from nn.datasets import get_dataset
 
 
-@pytest.mark.parametrize("name", ["and", "or", "xor", "blobs"])
+@pytest.mark.parametrize("name", ["and", "or", "xor", "blobs", "circles", "spiral"])
 def test_get_dataset_shapes(name):
     data = get_dataset(name)
     assert len(data["points"]) == len(data["labels"])

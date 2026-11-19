@@ -3,6 +3,7 @@ from pathlib import Path
 
 from flask import Flask, send_from_directory
 
+from api.mlp_routes import bp as mlp_bp
 from api.perceptron_routes import bp as perceptron_bp
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -10,6 +11,7 @@ FRONTEND_DIR = BASE_DIR.parent / "frontend"
 
 app = Flask(__name__, static_folder=str(FRONTEND_DIR), static_url_path="")
 app.register_blueprint(perceptron_bp)
+app.register_blueprint(mlp_bp)
 
 
 @app.route("/")

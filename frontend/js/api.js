@@ -23,3 +23,48 @@ export async function perceptronPredict({ weights, bias, points }) {
   if (!res.ok) throw new Error("Błąd podczas predykcji");
   return res.json();
 }
+
+async function postJson(url, body) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`Błąd zapytania do ${url}`);
+  return res.json();
+}
+
+export function mlpInit({ architecture, hiddenActivation, seed }) {
+  return postJson("/api/mlp/init", { architecture, hidden_activation: hiddenActivation, seed });
+}
+
+export function mlpStep({ architecture, hiddenActivation, weights, biases, dataset, learningRate }) {
+  return postJson("/api/mlp/step", {
+    architecture,
+    hidden_activation: hiddenActivation,
+    weights,
+    biases,
+    dataset,
+    learning_rate: learningRate,
+  });
+}
+
+export function mlpPredict({ architecture, hiddenActivation, weights, biases, points }) {
+  return postJson("/api/mlp/predict", {
+    architecture,
+    hidden_activation: hiddenActivation,
+    weights,
+    biases,
+    points,
+  });
+}
+
+export function mlpActivations({ architecture, hiddenActivation, weights, biases, point }) {
+  return postJson("/api/mlp/activations", {
+    architecture,
+    hidden_activation: hiddenActivation,
+    weights,
+    biases,
+    point,
+  });
+}
