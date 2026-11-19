@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perceptron — Zrozumieć sieci neuronowe</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>Pojedynczy perceptron</h1>
+    <a class="back-link" href="/">← Strona główna</a>
+  </header>
+  <main>
+    <div class="layout">
+      <section class="panel">
+        <h2>Dataset</h2>
+        <div class="field">
+          <label for="dataset-select">Wybierz dataset</label>
+          <select id="dataset-select">
+            <option value="and">AND</option>
+            <option value="or">OR</option>
+            <option value="xor">XOR (niemożliwe do nauczenia!)</option>
+            <option value="blobs">Dwie chmury punktów</option>
+          </select>
+        </div>
+
+        <h2>Trening</h2>
+        <div class="field">
+          <label for="learning-rate">Współczynnik uczenia <span id="learning-rate-value">0.10</span></label>
+          <input type="range" id="learning-rate" min="0.01" max="1" step="0.01" value="0.1" />
+        </div>
+        <button id="btn-step">Jeden krok (epoka)</button>
+        <button id="btn-train" class="primary">Trenuj do zbieżności</button>
+        <button id="btn-random">Losowe wagi</button>
+
+        <h2>Wagi (ręcznie)</h2>
+        <div class="field">
+          <label for="w1">w1 <span id="w1-value">0.00</span></label>
+          <input type="range" id="w1" min="-2" max="2" step="0.01" value="0" />
+        </div>
+        <div class="field">
+          <label for="w2">w2 <span id="w2-value">0.00</span></label>
+          <input type="range" id="w2" min="-2" max="2" step="0.01" value="0" />
+        </div>
+        <div class="field">
+          <label for="bias">bias <span id="bias-value">0.00</span></label>
+          <input type="range" id="bias" min="-2" max="2" step="0.01" value="0" />
+        </div>
+      </section>
+
+      <section>
+        <canvas id="scatter" width="480" height="480"></canvas>
+
+        <svg class="neuron-diagram" viewBox="0 0 320 160" xmlns="http://www.w3.org/2000/svg">
+          <line x1="50" y1="30" x2="150" y2="80" />
+          <line x1="50" y1="130" x2="150" y2="80" />
+          <line x1="150" y1="80" x2="260" y2="80" />
+
+          <circle cx="50" cy="30" r="18" />
+          <circle cx="50" cy="130" r="18" />
+          <circle cx="150" cy="80" r="22" />
+          <circle cx="260" cy="80" r="18" />
+
+          <text x="50" y="12" text-anchor="middle">x1</text>
+          <text x="20" y="34" text-anchor="middle" id="diag-x1-value">–</text>
+          <text x="50" y="150" text-anchor="middle">x2</text>
+          <text x="20" y="134" text-anchor="middle" id="diag-x2-value">–</text>
+          <text x="100" y="50" text-anchor="middle" class="weight-label" id="diag-w1-label">w1=0.00</text>
+          <text x="100" y="118" text-anchor="middle" class="weight-label" id="diag-w2-label">w2=0.00</text>
+          <text x="150" y="110" text-anchor="middle" id="diag-bias-label">bias=0.00</text>
+          <text x="150" y="86" text-anchor="middle" font-size="14">Σ</text>
+          <text x="205" y="70" text-anchor="middle" id="diag-sum-value">–</text>
+          <text x="260" y="86" text-anchor="middle">y</text>
+          <text x="260" y="112" text-anchor="middle" id="diag-output-value">–</text>
+        </svg>
+        <p class="info-box">Kliknij punkt na wykresie, aby zobaczyć jak perceptron liczy dla niego sumę ważoną i wynik.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Statystyki</h2>
+        <div class="stat-row"><span>Epoka</span><span class="value" id="stat-epoch">0</span></div>
+        <div class="stat-row"><span>Dokładność</span><span class="value" id="stat-accuracy">—</span></div>
+        <div class="stat-row"><span>Poprawki w ostatniej epoce</span><span class="value" id="stat-updates">—</span></div>
+        <canvas id="accuracy-chart" width="240" height="140"></canvas>
+
+        <div id="xor-note" class="info-box" style="display: none; margin-top: 1rem;">
+          <strong>Dlaczego to się nie uda?</strong><br />
+          XOR nie jest liniowo separowalny — żadna prosta linia nie rozdzieli
+          tych klas. Pojedynczy perceptron potrafi rysować tylko linię prostą,
+          dlatego historycznie (Minsky &amp; Papert, 1969) ten właśnie problem
+          pokazał granice perceptronu i był impulsem do sieci wielowarstwowych
+          (kolejny etap).
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module" src="/js/perceptron.js"></script>
+</body>
+</html>
