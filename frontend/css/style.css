@@ -319,3 +319,32 @@ canvas {
 .log-line.log-ok {
   color: var(--good);
 }
+
+.log-line.log-crash {
+  color: var(--accent-2);
+}
+
+.mode-toggle {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 0.9rem;
+}
+
+.mode-toggle button {
+  flex: 1;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+}
+
+.mode-toggle button + button {
+  border-left: 1px solid var(--border);
+}
+
+.mode-toggle button.active {
+  background: var(--accent);
+  color: #0b1220;
+  font-weight: 600;
+}

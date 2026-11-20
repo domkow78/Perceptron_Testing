@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Symulacja auta RC — Zrozumieć sieci neuronowe</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>Symulacja auta RC (lidar + klonowanie zachowania)</h1>
+    <a class="back-link" href="/">← Strona główna</a>
+  </header>
+  <main>
+    <section class="panel theory-panel">
+      <p class="info-box">
+        <strong>Co widzisz na ekranie:</strong> auto jeździ po owalnym torze
+        z dwiema szykanami (krótkimi S-zakrętami), 7 promieni lidaru mierzy
+        odległość do ścian, pasek pod torem to uproszczona "kamera" z tych
+        samych pomiarów, a sieć (ta sama co w Etapie 2/3) uczy się skręcać
+        na podstawie nagranej jazdy użytkownika.
+      </p>
+
+      <details>
+        <summary>Czym jest lidar i raycasting?</summary>
+        <p>
+          Lidar "widzi" otoczenie, wystrzeliwując wiele promieni pod różnymi
+          kątami i mierząc, jak daleko każdy z nich przeleciał, zanim trafił
+          w przeszkodę (tu: ścianę toru). To właśnie raycasting — dla każdego
+          promienia szukamy najbliższego przecięcia z odcinkiem ściany.
+          7 odczytów odległości (znormalizowanych do [0,1]) to całe wejście
+          sieci neuronowej.
+        </p>
+      </details>
+
+      <details>
+        <summary>Model jazdy (unicycle)</summary>
+        <p>
+          Auto jedzie ze stałą prędkością do przodu — jedynym sterowaniem
+          jest skręt (lewo/prawo). To uproszczenie w sam raz pod binarne
+          wyjście sieci: nie trzeba uczyć sieci "jak mocno" skręcić, tylko
+          "w którą stronę".
+        </p>
+      </details>
+
+      <details>
+        <summary>Po co szykany na torze?</summary>
+        <p>
+          Zwykły owal wymaga skręcania tylko w <strong>jedną</strong> stronę
+          przez całe okrążenie (to matematyczna własność każdej zamkniętej
+          pętli bez samoprzecięć — suma skrętów zawsze wychodzi 360° w jedną
+          stronę). Gdybyśmy zostawili prosty owal, nagrana jazda zawierałaby
+          niemal same przykłady jednego kierunku, a sieć nauczyłaby się
+          stałej reguły "zawsze w lewo" zamiast patrzeć na odczyty lidaru.
+          Dwie szykany (krótkie S: w prawo, zaraz potem w lewo) wymuszają
+          w nagranej jeździe przykłady obu kierunków skrętu.
+        </p>
+      </details>
+
+      <details>
+        <summary>Czym jest klonowanie zachowania (behavior cloning)?</summary>
+        <p>
+          W trybie manualnym Ty sterujesz autem, a każda decyzja o skręcie
+          (wraz z bieżącymi odczytami lidaru) jest nagrywana jako przykład
+          uczący: <code>odczyty lidaru → 0 (lewo) albo 1 (prawo)</code>.
+          Sieć uczy się potem naśladować te przykłady — dokładnie tym samym
+          mechanizmem treningu co w Etapie 2/3 (ten sam MLP, bez żadnych
+          zmian), tylko dane pochodzą z Twojej jazdy zamiast z gotowego
+          datasetu.
+        </p>
+      </details>
+
+      <details>
+        <summary>Co oznaczają statystyki po prawej?</summary>
+        <p>
+          <strong>Epoka</strong> — który to przebieg uczenia po nagranych
+          próbkach (rośnie tylko przy "Trenuj").
+          <strong>Strata (loss)</strong> — jak bardzo sieć myli się na
+          nagranych próbkach; dobry trening to opadający wykres, wartość
+          blisko 0 = sieć niemal idealnie odtwarza Twoje decyzje.
+          <strong>Dokładność</strong> — odsetek próbek, w których sieć
+          zgaduje tę samą stronę (lewo/prawo), co Ty podczas nagrywania;
+          blisko 100% to dobry znak przed przejściem na autonomiczny.
+          <strong>Ostatnia predykcja</strong> — surowa liczba [0,1] z sieci
+          w trybie autonomicznym: blisko 0 = skręca w lewo, blisko 1 =
+          w prawo, w okolicach 0.5 (strefa martwa 0.4–0.6) = jedzie na
+          wprost.
+        </p>
+      </details>
+    </section>
+
+    <section class="panel" style="margin-bottom: 1.25rem;">
+      <h2>Jak zacząć</h2>
+      <ol class="info-box" style="margin: 0; padding-left: 1.2rem;">
+        <li>Tryb <strong>Manualny</strong> jest już włączony — trzymaj ← albo
+          → (albo A / D), żeby jechać i skręcać. Próbka nagrywa się
+          <strong>tylko wtedy, gdy trzymasz klawisz</strong> (patrz licznik
+          "Próbki nagrane" po prawej) — jazda na wprost nic nie nagrywa.</li>
+        <li>Pojeźdź tak kilka okrążeń, pamiętając o skręcaniu na zakrętach
+          (im więcej sensownych przykładów, tym lepiej nauczy się sieć).</li>
+        <li>Kliknij <strong>"Zbuduj sieć (losowe wagi)"</strong> — to tworzy
+          nową, jeszcze nic nieumiejącą sieć.</li>
+        <li>Kliknij <strong>"Trenuj N epok"</strong> (można kilka razy) — sieć
+          uczy się z nagranych próbek; strata (loss) powinna spadać na
+          wykresie po prawej.</li>
+        <li>Przełącz na <strong>Autonomiczny</strong> — teraz to sieć steruje
+          autem na podstawie lidaru. "Resetuj pozycję auta" w każdej chwili
+          stawia auto z powrotem na starcie.</li>
+      </ol>
+    </section>
+
+    <div class="layout">
+      <section class="panel">
+        <h2>Tryb jazdy</h2>
+        <div class="mode-toggle">
+          <button id="btn-mode-manual" class="active">Manualny</button>
+          <button id="btn-mode-autonomous">Autonomiczny</button>
+        </div>
+        <p class="info-box">Sterowanie: strzałki ← → (albo A / D).</p>
+        <button id="btn-reset-car">Resetuj pozycję auta</button>
+
+        <h2>Sieć</h2>
+        <div class="field">
+          <label for="hidden-size">Neurony w warstwie ukrytej</label>
+          <input type="number" id="hidden-size" min="2" max="64" value="12" />
+        </div>
+        <p class="info-box" style="margin: -0.4rem 0 0.9rem;">
+          12 to dobry start przy 7 wejściach (odczyty lidaru) i 1 wyjściu.
+          Mniej niż ~6 — sieć może nie odróżnić wszystkich sytuacji; więcej
+          niż ~32 zwykle nic nie poprawia dla tak prostego zadania, tylko
+          wolniej liczy.
+        </p>
+        <div class="field">
+          <label for="activation-select">Funkcja aktywacji (warstwa ukryta)</label>
+          <select id="activation-select">
+            <option value="tanh">tanh</option>
+            <option value="sigmoid">sigmoid</option>
+            <option value="relu">ReLU</option>
+          </select>
+        </div>
+        <button id="btn-build-sim" class="primary">Zbuduj sieć (losowe wagi)</button>
+        <p class="info-box">
+          Kliknięcie <strong>kasuje dotychczasowe wagi</strong> (nowe losowe)
+          — nagrane próbki zostają, więc możesz od razu trenować dalej.
+        </p>
+
+        <h2>Trening</h2>
+        <div class="field">
+          <label for="learning-rate">Współczynnik uczenia <span id="learning-rate-value">0.50</span></label>
+          <input type="range" id="learning-rate" min="0.01" max="2" step="0.01" value="0.5" />
+        </div>
+        <p class="info-box" style="margin: -0.4rem 0 0.9rem;">
+          0.3–0.7 to bezpieczny zakres. Jeśli wykres straty zaczyna skakać
+          albo rosnąć zamiast spadać — zmniejsz tę wartość.
+        </p>
+        <div class="field">
+          <label for="epochs-per-run">Epok na "Trenuj"</label>
+          <input type="number" id="epochs-per-run" min="1" max="500" value="20" />
+        </div>
+        <button id="btn-train-sim">Trenuj N epok</button>
+        <p class="info-box">
+          Jedna "epoka" = jeden przebieg uczenia po wszystkich dotąd
+          nagranych próbkach. Klikaj "Trenuj" wielokrotnie, patrząc na
+          wykres straty (po prawej): spada → ucz dalej; przestała spadać
+          przez kilka kliknięć → więcej epok nie pomoże, potrzeba nagrać
+          więcej/innej jazdy (np. więcej sytuacji blisko ścian).
+          Potrzeba minimum ~20 próbek, ale realistycznie lepiej mieć
+          150–300+ z obu kierunków skrętu.
+        </p>
+      </section>
+
+      <section>
+        <canvas id="track-canvas" width="880" height="460"></canvas>
+        <p class="info-box" style="margin: 0.6rem 0 0.3rem;">Kamera (pasek kolorów z lidaru)</p>
+        <canvas id="camera-strip" width="420" height="60"></canvas>
+      </section>
+
+      <section class="panel">
+        <h2>Statystyki</h2>
+        <div class="stat-row"><span>Tryb</span><span class="value" id="stat-mode">Manualny</span></div>
+        <div class="stat-row"><span>Próbki nagrane</span><span class="value" id="stat-samples">0</span></div>
+        <div class="stat-row"><span>Kraksy</span><span class="value" id="stat-crashes">0</span></div>
+        <div class="stat-row"><span>Ostatnia predykcja</span><span class="value" id="stat-prediction">—</span></div>
+        <div class="stat-row"><span>Epoka</span><span class="value" id="stat-epoch">0</span></div>
+        <div class="stat-row"><span>Strata (loss)</span><span class="value" id="stat-loss">—</span></div>
+        <div class="stat-row"><span>Dokładność</span><span class="value" id="stat-accuracy">—</span></div>
+        <p class="info-box" style="margin-bottom: 0.3rem;">Strata (loss)</p>
+        <canvas id="loss-chart" width="240" height="100"></canvas>
+        <p class="info-box" style="margin: 0.6rem 0 0.3rem;">Dokładność</p>
+        <canvas id="accuracy-chart" width="240" height="100"></canvas>
+      </section>
+    </div>
+
+    <section class="panel log-panel">
+      <div class="log-header">
+        <h2>Log</h2>
+        <button id="btn-clear-log">Wyczyść log</button>
+      </div>
+      <div id="training-log" class="training-log" aria-live="polite">
+        <p class="info-box">Pojeźdź manualnie (strzałki / A D), a potem kliknij "Zbuduj sieć" i "Trenuj N epok".</p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/js/simulation.js"></script>
+</body>
+</html>
